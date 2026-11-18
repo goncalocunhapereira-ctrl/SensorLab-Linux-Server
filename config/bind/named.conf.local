@@ -1,0 +1,5 @@
+// Zona de resolução direta, grupo1.lab (R4).
+zone "grupo1.lab" {
+    type primary;
+    file "/etc/bind/db.grupo1.lab";
+};

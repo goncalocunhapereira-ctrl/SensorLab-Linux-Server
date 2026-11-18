@@ -1,0 +1,10 @@
+# Alternativa ao nmcli; só usar se a enp0s8 NÃO estiver já gerida/configurada.
+# Não alterar a enp0s3 (NAT / acesso SSH).
+network:
+  version: 2
+  ethernets:
+    enp0s8:
+      dhcp4: false
+      addresses:
+        - 192.168.50.1/24
+      optional: true

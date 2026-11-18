@@ -1,0 +1,32 @@
+# Ficheiro do site /etc/nginx/sites-available/sensorlab
+# Certificado TLS criado localmente (NUNCA publicar a chave privada).
+server {
+    listen 80;
+    server_name srv.grupo1.lab;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name srv.grupo1.lab localhost;
+
+    ssl_certificate /etc/ssl/certs/sensorlab.crt;
+    ssl_certificate_key /etc/ssl/private/sensorlab.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    root /var/www/sensorlab;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    # Barra final em proxy_pass retira o prefixo /api/ antes de chegar ao PostgREST.
+    location /api/ {
+        proxy_pass http://127.0.0.1:3000/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}

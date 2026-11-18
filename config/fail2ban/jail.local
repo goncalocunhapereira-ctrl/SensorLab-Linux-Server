@@ -1,0 +1,13 @@
+[DEFAULT]
+# O host Windows chega por NAT como 10.0.2.2. Não bloquear o único acesso administrativo.
+# Ajustar antes de implantar noutra rede; nunca ignorar uma rede inteira desnecessariamente.
+ignoreip = 127.0.0.1/8 ::1 10.0.2.2
+bantime = 600
+findtime = 600
+maxretry = 3
+
+[sshd]
+enabled = true
+port = 22
+filter = sshd
+backend = systemd

@@ -1,0 +1,73 @@
+# =====================================================================
+# SensorLab · Base de dados + API (requisito R7)
+#   db  -> PostgreSQL com o dataset WISDM (importado no 1.º arranque)
+#   api -> PostgREST: transforma o esquema "api" numa API REST
+#
+# Arrancar (na pasta compose/):   docker compose up -d
+# Ver o estado:                   docker compose ps
+# Ver registos:                   docker compose logs -f api
+#
+# As palavras-passe estão no ficheiro .env (copiado de .env.example),
+# que NUNCA vai para o Git.
+# =====================================================================
+name: sensorlab
+
+services:
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGRST_SENHA: ${PGRST_SENHA}          # usada pelo initdb/00_init.sh
+    volumes:
+      - dbdados:/var/lib/postgresql/data   # dados persistentes (sobrevivem ao contentor)
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+      - ../sql:/sql:ro
+      - ../data:/data:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    # Sem "ports": a base de dados só é acessível dentro da rede do Compose.
+    # Para a consultar: docker compose exec db psql -U <utilizador> -d <base>
+
+  api:
+    image: postgrest/postgrest:v12.2.3
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${PGRST_SENHA}@db:5432/${POSTGRES_DB}
+      PGRST_DB_SCHEMAS: api
+      PGRST_DB_ANON_ROLE: web_anon
+      PGRST_DB_MAX_ROWS: 1000              # nenhum pedido devolve mais de 1000 linhas
+      PGRST_OPENAPI_SERVER_PROXY_URI: https://srv.${GRUPO}.lab/api/
+    ports:
+      # Só em 127.0.0.1: o acesso de fora faz-se pelo Nginx (https://srv.grupoN.lab/api/).
+      # ATENÇÃO: "3000:3000" sem o 127.0.0.1 expunha a API a toda a rede,
+      # e o Docker ignora as regras da UFW para portas publicadas.
+      - "127.0.0.1:3000:3000"
+
+  grafana:
+    # Extra documentado no PowerPoint R7 (não faz parte do Compose base do docente).
+    image: grafana/grafana:13.3.1
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+    ports:
+      # Painel de administração não exposto diretamente à rede.
+      - "127.0.0.1:3001:3000"
+    volumes:
+      - grafanadados:/var/lib/grafana
+
+volumes:
+  dbdados:
+  grafanadados:

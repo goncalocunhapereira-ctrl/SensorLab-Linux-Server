@@ -1,0 +1,11 @@
+$TTL 3600
+@ IN SOA ns.grupo1.lab. admin.grupo1.lab. (
+    2026110301 ; serial - incrementar sempre que se edita a zona
+    3600       ; refresh
+    1800       ; retry
+    604800     ; expire
+    3600       ; negative cache TTL
+)
+@   IN NS ns.grupo1.lab.
+ns  IN A  192.168.50.1
+srv IN A  192.168.50.1
