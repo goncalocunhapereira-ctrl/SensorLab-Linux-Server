@@ -1,0 +1,18 @@
+# Credenciais e chaves: nunca publicar no Git.
+.env
+**/.env
+*.key
+id_*
+!keys/*.pub
+*.pem
+# Dados WISDM: obter a partir do kit do docente.
+data/*.csv
+# Backups e artefactos locais.
+*.dump
+*.backup
+*.part
+backups/
+# Ficheiros temporários.
+*.swp
+*~
+.DS_Store
